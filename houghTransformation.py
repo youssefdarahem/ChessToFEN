@@ -6,24 +6,24 @@ class Hough():
     def __init__(self):
         pass
 
-    def hough_lines_acc(img, rho_resolution=1, theta_resolution=1):
+    def hough_lines_acc(img, height, width, rho_resolution=1, theta_resolution=1):
+        if img is not None:
+            #height, width = img.shape
+            img_diagonal = np.ceil(np.sqrt(height**2 + width**2))
+            rhos = np.arange(-img_diagonal, img_diagonal + 1, rho_resolution)
+            thetas = np.deg2rad(np.arange(-90, 90, theta_resolution))
 
-        height, width = img.shape
-        img_diagonal = np.ceil(np.sqrt(height**2 + width**2))
-        rhos = np.arange(-img_diagonal, img_diagonal + 1, rho_resolution)
-        thetas = np.deg2rad(np.arange(-90, 90, theta_resolution))
-
-        H = np.zeros((len(rhos), len(thetas)), dtype=np.uint64)
-        y_idxs, x_idxs = np.nonzero(img)
-        for i in range(len(x_idxs)):
-            x = x_idxs[i]
-            y = y_idxs[i]
-            for j in range(len(thetas)):
-                rho = int((x * np.cos(thetas[j]) +
-                           y * np.sin(thetas[j])) + img_diagonal)
-                H[rho, j] += 1
-        # Returns an accumulator matrix H, and cell locations theta and rho
-        return H, rhos, thetas
+            H = np.zeros((len(rhos), len(thetas)), dtype=np.uint64)
+            y_idxs, x_idxs = np.nonzero(img)
+            for i in range(len(x_idxs)):
+                x = x_idxs[i]
+                y = y_idxs[i]
+                for j in range(len(thetas)):
+                    rho = int((x * np.cos(thetas[j]) +
+                            y * np.sin(thetas[j])) + img_diagonal)
+                    H[rho, j] += 1
+            # Returns an accumulator matrix H, and cell locations theta and rho
+            return H, rhos, thetas
 
     def hough_simple_peaks(H, num_peaks):
         indices = np.argpartition(H.flatten(), -2)[-num_peaks:]
