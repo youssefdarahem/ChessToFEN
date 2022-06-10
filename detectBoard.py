@@ -1,66 +1,59 @@
+from hashlib import new
 import cv2 as cv
 import numpy as np
 from boardDetectFun import *
 
 
 def detectBoard(img, shape):
-
+    min_area = 1000
+    max_area = 1000000
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    t_lower = 100  # Lower Threshold
-    t_upper = 200  # Upper threshold
+    edges = cv.Canny(gray, 50, 200, apertureSize=3)
+    # Find contours and filter using threshold area
+    cnts = cv.findContours(edges, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-    edges = cv.Canny(gray, t_lower, t_upper, apertureSize=3)
-    # lines = cv.HoughLinesP(
-    #     edges,  # Input edge image
-    #     1,  # Distance resolution in pixels
-    #     np.pi/180,  # Angle resolution in radians
-    #     threshold=50,  # Min number of votes for valid line
-    #     minLineLength=10,  # Min allowed length of line
-    #     maxLineGap=60  # Max allowed gap between line for joining them
-    # )
+    for points in cnts:
+        area = cv.contourArea(points)
+        if area > min_area and area < max_area:
+            cornerPoints = drawExtractsquare(img, points)
+
+    p1, p2, p3, p4 = cornerPoints.points
+
+    cv.line(img, p1, p2, (255, 255, 255), 2)
+    cv.line(img, p3, p2, (255, 255, 255), 2)
+    cv.line(img, p4, p3, (255, 255, 255), 2)
+    cv.line(img, p1, p4, (255, 255, 255), 2)
+    mask = np.ones(img.shape, dtype=np.uint8)
+    mask.fill(255)
+    # points to be cropped
+    roi_corners = np.array([cornerPoints.points], dtype=np.int32)
+    # fill the ROI into the mask
+    cv.fillPoly(mask, roi_corners, 0)
+
+    # applying th mask to original image
+    masked_image = cv.bitwise_or(img, mask)
+    cv.imshow('cropped', masked_image)
+
+    gray = cv.cvtColor(masked_image, cv.COLOR_BGR2GRAY)
+    edges = cv.Canny(masked_image, 50, 200, apertureSize=3)
 
     lines = cv.HoughLines(edges, 1, np.pi/180, 160)
     h_lines, v_lines = h_v_lines(lines)
     intersection_points = line_intersections(h_lines, v_lines)
     points = cluster_points(intersection_points)
-    points2 = augment_points(points)
-    point3 = boardPoints(points)
-    arrP = np.array(points)
-    start_y = arrP[0][1]
-    end_y = arrP[-1][1]
-    xy = np.transpose(arrP)
-    start_x = min(xy[0])
-    end_x = max(xy[0])
-    print(start_y)
-    print(end_y)
-    print(start_x)
-    print(end_x)
-    # print(arrP)
+    center = (int(img.shape[1]/2), int(img.shape[0]/2))
+    newPoints = removeClosePoints(points, center, cornerPoints, threshhold=40)
+    if (len(newPoints) == 81):
+        print('it seems like a good fit!!')
+        allrows = organizeSave(newPoints)
+        print(len(allrows))
+    else:
+        print('try to position the baord differently')
+    pointsFromTxt = readPoints()
+    for i in range(9):
+        drawPoints(img, allrows[i])
 
-    # Todo: find a way to return only the points of the chess board
-
-    for point in points:
-        x = np.array(point)
-
-        x = x.astype(int)
-
-        point = tuple(x)
-        cv.circle(img, point, 1, (0, 0, 255), 2)
-
-    # for point in points:
-    #     x = np.array(point)
-
-    #     x = x.astype(int)
-
-    #     point = tuple(x)
-    #     cv.circle(img, point, 1, (255, 0, 255), 2)
-        # if(x[1] > (end_y - start_y)//2 and x[1] < ((end_y - start_y)//2)+40):
-        #     cv.circle(img, point, 1, (255, 0, 255), 2)
-        #     if(x[0] > (abs(end_x - start_x))//2 and x[0] < ((abs(end_x - start_x))//2)+70):
-        #         cv.circle(img, point, 1, (0, 255, 255), 2)
-        # else:
-        #     cv.circle(img, point, 1, (0, 0, 255), 2)
-    # drawLines(img, lines)
-
-    cv.imshow('org', img)
-    cv.imshow('edges', edges)
+    cv.imshow('canny', edges)
+    cv.imshow('image', img)
+    cv.waitKey()

@@ -37,7 +37,7 @@ def main():
     # cap = camera.use()
 
     # ret, img = cap.read()
-    img = cv.imread('inputs/test4.jpeg')
+    img = cv.imread('inputs/test5.jpeg')
     scale_percent = 40  # percent of original size
     width = int(img.shape[1] * scale_percent / 100)
     height = int(img.shape[0] * scale_percent / 100)
