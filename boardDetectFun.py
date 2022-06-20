@@ -132,6 +132,15 @@ def drawPoints(img, points):
         cv.circle(img, point, 1, (0, 0, 255), 2)
 
 
+def drawOrderedPoints(img, points):
+    for rows in points:
+        for point in rows:
+            x = np.array(point)
+            x = x.astype(int)
+            point = tuple(x)
+            cv.circle(img, point, 1, (0, 0, 255), 2)
+
+
 # TODO: return corrected corrners
 def drawExtractsquare(img, points):
     x_dim = points.shape[0]
@@ -175,7 +184,7 @@ def drawExtractsquare(img, points):
 # todo fix it
 
 
-def removeClosePoints(points, center, cornerPoints, threshhold):
+def removeClosePoints(points, center, threshhold):
     tempPoints = points.copy()
     for i in range(len(points)):
 
@@ -240,3 +249,38 @@ def stringToPoints(strRow):
             point = (float(point[0]), float(point[1]))
             row.append(point)
     return row
+
+# Crops and returns a square
+
+
+def crop(img, square):
+    points = square.points()
+    # print(points)
+    p1 = points[0]
+    p4 = points[2]
+    p1 = np.array(p1)
+    p1 = p1.astype(int)
+    point1 = tuple(p1)
+    p4 = np.array(p4)
+    p4 = p4.astype(int)
+    point4 = tuple(p4)
+
+    cv.circle(img, point1, 1, (255, 0, 255))
+    cv.circle(img, point4, 1, (255, 0, 255))
+    x = int(p1[0])
+    w = int(p4[0])
+    y = int(p1[1])
+    h = int(p4[1])
+
+    newImg = img[y:h, x:w]
+    #newImg = img[x:w, y:h]
+
+    newImg = cv.resize(newImg, (128, 128))
+    return newImg
+
+
+def writeOutSquares(square, path, index):
+    filename = f'{path}{str(index)}.png'
+    print(filename)
+    cv.imwrite(filename, square)
+            

@@ -37,7 +37,11 @@ def main():
     # cap = camera.use()
 
     # ret, img = cap.read()
-    img = cv.imread('inputs/test5.jpeg')
+    img = cv.imread('inputs/test12.jpeg')
+    #img = cv.transpose(img)
+    img = cv.rotate(img, cv.ROTATE_180)
+    img = cv.flip(img, -1)
+
     scale_percent = 40  # percent of original size
     width = int(img.shape[1] * scale_percent / 100)
     height = int(img.shape[0] * scale_percent / 100)

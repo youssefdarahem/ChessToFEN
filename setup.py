@@ -31,10 +31,36 @@ def gstreamer_pipeline(
 
 
 def setup():
-    cap = cv.VideoCapture(gstreamer_pipeline(), cv.CAP_GSTREAMER)
-    while True:
+    setup = True
+    # cap = cv.VideoCapture(gstreamer_pipeline(), cv.CAP_GSTREAMER)
+    cap = cv.VideoCapture(0)
+    font = cv.FONT_HERSHEY_SIMPLEX
+    org = (50, 50)
+    fontScale = 2
+    color = (255, 0, 0)
+    thickness = 2
+
+    while setup:
         ret, img = cap.read()
-        cv.imshow(img)
-        cv.addText(img, 'press s to setup', (0, 0))
-        if cv.waitKey(0):
+        cv.putText(img, 'press s to setup', org,
+                   font, fontScale, color, thickness)
+        cv.imshow('img', img)
+        keyCode = cv.waitKey(10) & 0xFF
+        if keyCode == ord('q'):
+            print('quiting')
+            cap.release()
+            break
+        elif keyCode == ord('s'):
             detectBoard(img)
+            # print('Trying')
+            print('Try agian ? (y/n)')
+            choice = input()
+            if choice == 'y':
+                setup = True
+            else:
+                setup = False
+    cap.release()
+    cv.destroyAllWindows()
+
+
+setup()
