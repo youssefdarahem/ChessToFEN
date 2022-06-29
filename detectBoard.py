@@ -28,7 +28,7 @@ def detectBoard(img, shape):
     mask = np.zeros_like(img)
     cv.drawContours(mask, cnts, idx, (255, 255, 255), -1)
     masked_image = cv.bitwise_and(img, mask)
-    cv.imshow('mask', masked_image)
+    
     
     ## Extract out the object and place into output image
 
@@ -58,8 +58,9 @@ def detectBoard(img, shape):
 
     gray = cv.cvtColor(masked_image, cv.COLOR_BGR2GRAY)
     edges = cv.Canny(masked_image, 50, 200, apertureSize=3)
-
     lines = cv.HoughLines(edges, 1, np.pi/180, 160)
+    # drawLines(img=masked_image,lines=lines)
+    cv.imshow('mask', masked_image)
     h_lines, v_lines = h_v_lines(lines)
     intersection_points = line_intersections(h_lines, v_lines)
     points = cluster_points(intersection_points)

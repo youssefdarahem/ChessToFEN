@@ -14,3 +14,13 @@ class Square():
         correctedpoints = CoordinateSystemTools(
             self.p1, self.p2, self.p3, self.p4)
         return correctedpoints.points
+
+
+class ImageSquare():
+    
+    def __init__(self, img, position):
+        self.img = img
+        self.position = position
+
+    def prediction(self, pred):
+        return [self.position, pred]

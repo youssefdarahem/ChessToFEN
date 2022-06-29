@@ -7,8 +7,9 @@ from statistics import mean
 import cv2 as cv
 
 from CoordinateSystemTools import CoordinateSystemTools
+from square import ImageSquare
 
-
+# separates horizontal and vertical lines
 def h_v_lines(lines):
     x_dim = lines.shape[0]
     h_lines, v_lines = [], []
@@ -48,30 +49,6 @@ def cluster_points(points):
         np.array(arr)[:, 1])), cluster_values)
     return sorted(list(clusters), key=lambda k: [k[1], k[0]])
 
-# TODO:remove if replacment is found
-
-
-def augment_points(points):
-    points_shape = list(np.shape(points))
-    # print('shape : ' + str(points_shape))
-    augmented_points = []
-    for row in range(int(points_shape[0] / 11)):
-        start = row * 9
-        end = (row * 9) + 8
-        rw_points = points[start:end + 1]
-        rw_y = []
-        rw_x = []
-        for point in rw_points:
-            x, y = point
-            rw_y.append(y)
-            rw_x.append(x)
-        y_mean = mean(rw_y)
-        for i in range(len(rw_x)):
-            point = (rw_x[i], y_mean)
-            augmented_points.append(point)
-    augmented_points = sorted(augmented_points, key=lambda k: [k[1], k[0]])
-    return augmented_points
-
 
 def boardPoints(points):
     points_shape = list(np.shape(points))
@@ -89,18 +66,17 @@ def boardPoints(points):
 
     return diff_y
 
-# TODO: remove or use after the drawExtractsquare
 
 
-def deleteExtraPoints(points, diff_y):
-    peaks_postions = []
-    current_peak = abs(diff_y[0])
-    for i in range(len(diff_y)):
-        if abs(diff_y[i]) > (current_peak + 10):
-            peaks_postions.append(i)
-            current_peak = abs(diff_y[0])
+# def deleteExtraPoints(points, diff_y):
+#     peaks_postions = []
+#     current_peak = abs(diff_y[0])
+#     for i in range(len(diff_y)):
+#         if abs(diff_y[i]) > (current_peak + 10):
+#             peaks_postions.append(i)
+#             current_peak = abs(diff_y[0])
 
-    print(peaks_postions)
+#     print(peaks_postions)
 
 
 def drawLines(img, lines):
@@ -138,10 +114,10 @@ def drawOrderedPoints(img, points):
             x = np.array(point)
             x = x.astype(int)
             point = tuple(x)
-            cv.circle(img, point, 1, (0, 0, 255), 2)
+            cv.circle(img, point, 1, (0, 0, 255), 5)
 
 
-# TODO: return corrected corrners
+
 def drawExtractsquare(img, points):
     x_dim = points.shape[0]
     points = points.reshape(x_dim, 2)
@@ -181,17 +157,12 @@ def drawExtractsquare(img, points):
     correctedpoints = CoordinateSystemTools(p1, p2, p3, p4)
     return correctedpoints
 
-# todo fix it
-
 
 def removeClosePoints(points, center, threshhold):
     tempPoints = points.copy()
     for i in range(len(points)):
 
         currentPoint = points[i]
-        # if not cornerPoints.isInsidePolygon(currentPoint):
-        #     tempPoints.remove(currentPoint)
-        #     break
 
         for j in range(len(points)):
             commparedPoint = points[j]
@@ -202,13 +173,10 @@ def removeClosePoints(points, center, threshhold):
                 if math.dist(currentPoint, center) > math.dist(commparedPoint, center):
                     if(currentPoint in tempPoints):
                         tempPoints.remove(currentPoint)
-
                 else:
                     if(commparedPoint in tempPoints):
                         tempPoints.remove(commparedPoint)
-
     return tempPoints
-
 
 def organizeSave(points):
     row = []
@@ -251,36 +219,31 @@ def stringToPoints(strRow):
     return row
 
 # Crops and returns a square
-
-
 def crop(img, square):
     points = square.points()
     # print(points)
-    p1 = points[0]
-    p4 = points[2]
-    p1 = np.array(p1)
-    p1 = p1.astype(int)
-    point1 = tuple(p1)
-    p4 = np.array(p4)
-    p4 = p4.astype(int)
-    point4 = tuple(p4)
-
-    cv.circle(img, point1, 1, (255, 0, 255))
-    cv.circle(img, point4, 1, (255, 0, 255))
+    p1 = points[1]
+    p4 = points[3]
+    
     x = int(p1[0])
     w = int(p4[0])
     y = int(p1[1])
     h = int(p4[1])
 
-    newImg = img[y:h, x:w]
+    newImg = img[y-10:h+10, x-10:w+10]
     #newImg = img[x:w, y:h]
 
     newImg = cv.resize(newImg, (128, 128))
+    # nImg = ImageSquare(newImg,position)
     return newImg
 
 
-def writeOutSquares(square, path, index):
-    filename = f'{path}{str(index)}.png'
-    print(filename)
-    cv.imwrite(filename, square)
+def writeOutSquares(squares, path, index):
+    for row in squares:
+        for s in row:
+
+            filename = f'{path}{str(index)}.png'
+            print(filename)
+            cv.imwrite(filename, s.img)
+            index += 1
             
